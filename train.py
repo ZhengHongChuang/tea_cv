@@ -34,14 +34,15 @@ def train():
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
-            _, predicted = outputs.max(1)
+
+
+            _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
-            correct += predicted.eq(labels).sum().item()
+            correct += (predicted == labels).sum()
         train_loss = running_loss / len(train_dataLoader)
         train_acc = correct / total
         writer.add_scalar('Train/Loss', train_loss, epoch)
         writer.add_scalar('Train/Accuracy', train_acc, epoch)
-        # print(f"Epoch {epoch + 1}, Loss: {running_loss / len(train_dataLoader)}")
 
 
         model.eval() 
@@ -54,17 +55,18 @@ def train():
                 outputs = model(images)
                 loss = criterion(outputs, labels)
                 val_loss += loss.item()
-                _, predicted = outputs.max(1)
+                _, predicted = torch.max(outputs.data, 1)
                 val_total += labels.size(0)
-                val_correct += predicted.eq(labels).sum().item()
+                val_correct += (predicted == labels).sum()
+         
         
         val_loss = val_loss / len(val_dataLoader)
         val_acc = val_correct / val_total
         writer.add_scalar('Validation/Loss', val_loss, epoch)
         writer.add_scalar('Validation/Accuracy', val_acc, epoch)
-        torch.save(model.state_dict(), 'weights/model_%d.pth' % (epoch + 1))
-        # if (epoch+1) % 1 == 0:
-        #     torch.save(model.state_dict(), 'weights/model_%d.pth' % (epoch + 1))
+       
+        if (epoch+1) % 10 == 0:
+            torch.save(model.state_dict(), 'weights/model_%d.pth' % (epoch + 1))
     writer.close()
 if __name__=='__main__':
     train()
